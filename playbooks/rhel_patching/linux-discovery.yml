@@ -1,0 +1,216 @@
+---
+- name: Linux System Discovery
+  hosts: all
+  become: true
+  serial: 1
+  gather_facts: true
+  tasks:
+    - name: Get nodename
+      ansible.builtin.debug:
+        msg: "{{ ansible_nodename }}"
+
+    - name: Get uptime
+      ansible.builtin.command: uptime
+      register: uptime_result
+      changed_when: false
+    - debug:
+        msg: "{{ uptime_result.stdout_lines }}"
+
+    - name: Get all IPv4 addresses
+      ansible.builtin.debug:
+        msg: "{{ ansible_all_ipv4_addresses }}"
+
+    - name: Get OS distro and version
+      ansible.builtin.debug:
+        msg: "{{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+    - name: Get lscpu
+      ansible.builtin.command: lscpu
+      register: lscpu_result
+      changed_when: false
+    - name: Get lscpu debug
+      ansible.builtin.debug:
+        msg: "{{ lscpu_result.stdout_lines }}"
+
+    - name: Get CPU cores
+      ansible.builtin.debug:
+        msg: "{{ ansible_processor_cores }}"
+
+    - name: Get CPU count
+      ansible.builtin.debug:
+        msg: "{{ ansible_processor_count }}"
+
+    - name: Get CPU threads per core
+      ansible.builtin.debug:
+        msg: "{{ ansible_processor_threads_per_core }}"
+
+    - name: Get CPU threads per core
+      ansible.builtin.debug:
+        msg: "{{ ansible_processor_vcpus }}"
+
+    - name: Get memory total
+      ansible.builtin.debug:
+        msg: "{{ ansible_memory_mb.real.total }}MB"
+
+    - name: Get memory free
+      ansible.builtin.shell: "free -m"
+      register: free_result
+      changed_when: false
+    - name: Get memory free debug
+      ansible.builtin.debug:
+        msg: "{{ free_result.stdout_lines }}"
+
+    - name: Get lsblk
+      ansible.builtin.command: lsblk
+      register: lsblk_result
+      changed_when: false
+    - name: Get lsblk debug
+      debug:
+        msg: "{{ lsblk_result.stdout_lines }}"
+
+    - name: Get disk free
+      ansible.builtin.shell: "df -h"
+      register: df_result
+      changed_when: false
+    - name: Get disk free debug
+      ansible.builtin.debug:
+        msg: "{{ df_result.stdout_lines }}"
+
+    - name: Search for app directories
+      ansible.builtin.find:
+        paths: /usr
+        recurse: no
+        file_type: directory
+        use_regex: yes
+        patterns:
+          - 'jdk'
+      ignore_errors: true
+      register: find_result
+
+    - name: Output the paths of the directories found
+      ansible.builtin.debug:
+        msg: "{{ item.path }}"
+      ignore_errors: true
+      loop: "{{ find_result.files }}"
+
+    - name: Get active services - CentOS7
+      ansible.builtin.shell: "systemctl list-units --type=service --state=active"
+      changed_when: false
+      register: services_result
+      when:
+        - ansible_os_family == "CentOS"
+        - ansible_distribution_major_version == "7"
+    - name: Get active services - CentOS6
+      ansible.builtin.shell: "service --status-all"
+      changed_when: true
+      register: services_result
+      when:
+        - ansible_os_family == "CentOS"
+        - ansible_distribution_major_version == "6"
+    - ansible.builtin.debug:
+        msg: "{{ services_result }}"
+
+    - name: Get active services - UL7
+      ansible.builtin.shell: "systemctl list-units --type=service --state=active"
+      changed_when: false
+      register: services_result
+      when:
+        - ansible_distribution_major_version == "7"
+
+    - name: Get active services - UL6
+      ansible.builtin.shell: "service --status-all"
+      changed_when: false
+      register: services_result
+      when:
+        - ansible_distribution_major_version == "6"
+
+    - name: Output of services
+      ansible.builtin.debug:
+        msg: "{{ services_result }}"
+
+    - name: Get mount info from fstab output
+      ansible.builtin.shell: "cat /etc/fstab | egrep -i nfs || echo NO NFS_SERVER FOUND"
+      changed_when: false
+      register: fstab_result
+      tags:
+        - mytest
+    - ansible.builtin.debug:
+        msg: "{{ fstab_result.stdout_lines }}"
+      tags:
+        - mytest
+
+    - name: Get a list of running processes
+      ansible.builtin.shell: "ps -ef | egrep -v grep | egrep -i 'java|jdk' || echo NO MATCHED RUNNING PROCESSES FOUND"
+      changed_when: false
+      register: ps_result
+
+      tags:
+        - mytest
+    - ansible.builtin.debug:
+        msg: "{{ ps_result.stdout_lines }}"
+      tags:
+        - mytest
+
+    - name: Get a list of users and cronjobs
+      ansible.builtin.shell: 'for user in $(cut -f1 -d\: /etc/passwd); do crontab -u $user -l; done'
+      ignore_errors: true
+      become: true
+      changed_when: false
+      register: cron_result
+      failed_when: "cron_result.rc not in [ 0, 1 ]"
+    - ansible.builtin.debug:
+        msg: "{{ cron_result.stdout_lines }}"
+
+    - name: List /export/home/ folder
+      ansible.builtin.command: "ls /export/home"
+      changed_when: false
+      register: exportHomeFolder_result
+      ignore_errors: true
+    - ansible.builtin.debug:
+        msg: "{{ exportHomeFolder_result.stdout_lines }}"
+
+    - name: List /root/.cpan folder per
+      ansible.builtin.command: "ls /root/"
+      changed_when: false
+      register: exportcpanFolder_result
+      ignore_errors: true
+    - debug:
+        msg: "{{ exportcpanFolder_result.stdout_lines }}"
+
+    #    - name: Get a list of installed apps via rpm -qa command
+    #      raw: "rpm -qa | sort"
+    #      register: rpm_result
+    #    - debug:
+    #        msg: "{{ rpm_result.stdout_lines }}"
+
+    - name: yum_command
+      ansible.builtin.yum:
+        list: installed
+      register: yum_list
+
+    - name: set fact
+      ansible.builtin.set_fact:
+        my_packages: []
+
+    # - name: append list
+    #   ansible.builtin.set_fact:
+    #     my_packages: "{{ my_packages + [item.name] }}"
+    #   loop: "{{ yum_list.results }}"
+    #   no_log: true
+    # - ansible.builtin.debug:
+    #     msg: "{{ my_packages }}"
+
+    - name: Get a list off all users in /etc/passwd
+      ansible.builtin.shell: "for user in $(cut -f1 -d: /etc/passwd); do echo $user; done | sort"
+      become: true
+      changed_when: false
+      register: users_result
+    - ansible.builtin.debug:
+        msg: "{{ users_result.stdout_lines }}"
+
+    - name: List directory in /opt
+      ansible.builtin.shell: "ls -al /opt | sort"
+      changed_when: false
+      register: opt_result
+    - ansible.builtin.debug:
+        msg: "{{ opt_result.stdout_lines }}"

@@ -1,0 +1,134 @@
+---
+# vars file for linux_config_mgmt
+
+selinux_state: enforcing
+timezone: "America/New_York"
+ntp_package: "chrony"
+ntp_service: "chronyd"
+
+disable_services:
+  - postfix
+  - avahi-daemon
+
+enable_services:
+  - sshd
+  - "{{ ntp_service }}"
+
+firewalld_services:
+  - http
+  - https
+
+user_accounts:
+  - name: jdoe
+    groups: wheel
+    shell: /bin/bash
+
+ssh_authorized_keys:
+  - user: jdoe
+    key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDf... jdoe@localhost"
+
+# Ubuntu-specific variables
+ubuntu_universe_repo: "deb http://archive.ubuntu.com/ubuntu/ {{ ansible_distribution_release }} universe"
+ubuntu_packages:
+  - htop
+  - vim
+  - curl
+
+ubuntu_remove_packages:
+  - snapd
+
+ufw_services:
+  - OpenSSH
+  - HTTP
+  - HTTPS
+
+ubuntu_upgrade: "dist"
+
+# RHEL hardening variables
+rhel_password_minlen: 14
+
+# password_expiration_policies:
+#   - regexp: "^(\s*)PASS_MAX_DAYS\s*=\s*(\S+)"
+#     line: "\g<1>PASS_MAX_DAYS\t\t60"
+#   - regexp: "^(\s*)PASS_MIN_DAYS\s*=\s*(\S+)"
+#     line: "\g<1>PASS_MIN_DAYS\t\t7"
+#   - regexp: "^(\s*)PASS_WARN_AGE\s*=\s*(\S+)"
+#     line: "\g<1>PASS_WARN_AGE\t\t7"
+
+rhel_sysctl_settings:
+  - name: "net.ipv4.conf.all.rp_filter"
+    value: "1"
+  - name: "net.ipv4.conf.default.rp_filter"
+    value: "1"
+  - name: "net.ipv4.tcp_syncookies"
+    value: "1"
+  - name: "net.ipv4.ip_forward"
+    value: "0"
+  - name: "net.ipv6.conf.all.forwarding"
+    value: "0"
+
+# RHEL user management variables
+user_groups:
+  - developers
+  - admins
+
+remove_user_accounts:
+  - jsmith
+  - bdoe
+
+lock_user_accounts:
+  - jsmith
+
+unlock_user_accounts:
+  - bdoe
+
+password_expiration_users:
+  - user: jdoe
+    days: 30
+  - user: bdoe
+    days: 60
+
+# Service management variables
+install_services:
+  - httpd
+  - mariadb
+
+remove_services:
+  - postfix
+
+restart_services:
+  - httpd
+
+reload_services:
+  - sshd
+
+mask_services:
+  - firewalld
+
+# RHEL boot management variables
+grub_timeout: 5
+grub_cmdline_linux: "audit=1"
+disable_boot_services:
+  - avahi-daemon
+  - postfix
+
+# RHEL storage management variables
+lvm_packages:
+  - lvm2
+
+physical_volumes:
+  - vg: vg_data
+    pvs: /dev/sdb
+
+volume_groups:
+  - vg: vg_data
+    pvs: /dev/sdb
+
+logical_volumes:
+  - vg: vg_data
+    lv: lv_home
+    size: 10G
+
+filesystems:
+  - fstype: xfs
+    dev: /dev/mapper/vg_data-lv_home

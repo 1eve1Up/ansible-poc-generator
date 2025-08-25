@@ -1,0 +1,97 @@
+---
+- name: "Configure Kerberos for LDAP/Active Directory Integration"
+  hosts: all
+  become: true
+  vars:
+    known_sha1sum: "deb5d9f2b3d2b3357098b231e67c1ebff44d0a9f" # default as of RHEL 8.6
+    krb5_conf_path: "/etc/krb5.conf"
+    kerberos_username: "your_username_here"
+    kerberos_password: "your_password_here"
+    libdefaults_config: |
+      default_realm = ACME.COM
+    realms_config: |
+      ACME.COM = {
+        kdc = kerberos.acme.com
+        admin_server = kerberos.acme.com
+      }
+    domain_realm_config: |
+      .acme.com = ACME.COM
+      acme.com = ACME.COM
+
+  tasks:
+    - name: Ensure that coreutils is installed for sha1sum
+      ansible.builtin.dnf:
+        name: coreutils
+        state: present
+      tags:
+        - coreutils_install
+
+    - name: "Get the sha1sum of {{ krb5_conf_path }}"
+      ansible.builtin.command:
+        cmd: "sha1sum {{ krb5_conf_path }}"
+      register: krb5_conf_sha1sum_result
+      changed_when: false
+      tags:
+        - krb5_sha1sum
+
+    - name: "Compare the {{ krb5_conf_path }} sha1sum against the known default"
+      ansible.builtin.assert:
+        that:
+          - known_sha1sum == krb5_conf_sha1sum_result.stdout.split()[0]
+        fail_msg: |
+          "The sha1sum of your /etc/krb5.conf file indicates that it has been previously modified from the OS default. Recommending manual update instead."
+      tags:
+        - krb5_sha1sum_check
+
+    - name: "Backup {{ krb5_conf_path }}"
+      ansible.builtin.copy:
+        src: "{{ krb5_conf_path }}"
+        dest: "{{ krb5_conf_path }}.aap-bak"
+        remote_src: true
+        backup: true
+      tags:
+        - file_backup
+
+    - name: "Update {{ krb5_conf_path }} or rollback"
+      block:
+        - name: Update krb5.conf using a template
+          ansible.builtin.template:
+            src: templates/krb5.conf.j2
+            dest: "{{ krb5_conf_path }}"
+            owner: root
+            group: root
+            mode: 0644
+          # when: known_sha1sum == krb5_conf_sha1sum_result.stdout.split()[0]
+          tags:
+            - krb5_conf_update
+
+        - name: Get a Kerberos ticket using the provided username and password
+          ansible.builtin.expect:
+            command: kinit "{{ kerberos_username }}"
+            responses:
+              "Password for {{ kerberos_username }}@.*:": "{{ kerberos_password }}"
+          no_log: true
+          tags:
+            - kerberos_ticket
+
+        - name: Verify the Kerberos ticket via klist
+          ansible.builtin.command: klist
+          register: klist_output
+          changed_when: false
+          tags:
+            - kerberos_ticket_verify
+
+        - name: Print klist output
+          ansible.builtin.debug:
+            var: klist_output.stdout_lines
+          tags:
+            - kerberos_ticket_verify
+      rescue:
+        - name: "Rollback: restore {{ krb5_conf_path }}"
+          ansible.builtin.copy:
+            src: "{{ krb5_conf_path }}.aap-bak"
+            dest: "{{ krb5_conf_path }}"
+            remote_src: true
+            backup: false
+          tags:
+            - file_restore

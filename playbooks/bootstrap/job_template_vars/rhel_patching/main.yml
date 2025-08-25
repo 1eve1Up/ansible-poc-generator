@@ -1,0 +1,29 @@
+---
+job_templates_tags_list:
+  - add_repository
+  - configure_automatic_updates
+  - configure_insights_client
+  - disable_repository
+  - disable_services
+  - downgrade_package
+  - enable_repository
+  - enable_services
+  - firewalld
+  - insights_client_status
+  - install_insights_client
+  - install_packages
+  - install_satellite_client
+  - install_security_updates
+  - install_specific_version
+  - kernel_parameters
+  - list_installed_packages
+  - list_updates
+  - register_insights_client
+  - register_uptime
+  - remove_insights_client
+  - remove_packages
+  - remove_repository
+  - run_insights_client
+  - selinux_state
+  - unregister_insights_client
+  - update_cache

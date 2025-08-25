@@ -1,0 +1,7 @@
+---
+job_templates_tags_list:
+  - ping_ios_switch
+  - show_ios_switch_version
+  - show_ios_switch_ssh_version
+  - configure_ios_switch_login_banner
+  - ios_switch_copy_run_start

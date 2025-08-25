@@ -1,0 +1,213 @@
+---
+# tasks file for windows_patching
+
+- name: Install Windows updates
+  ansible.windows.win_updates:
+    category_names: "{{ install_updates_category_names }}"
+    state: installed
+  tags:
+    - never
+    - install_updates
+
+- name: Install specific KB update
+  ansible.windows.win_package:
+    path: "{{ install_kb_update_path }}"
+    state: present
+  tags:
+    - never
+    - install_kb_update
+
+- name: Uninstall specific KB update
+  ansible.windows.win_package:
+    path: "{{ uninstall_kb_update_path }}"
+    state: absent
+  tags:
+    - never
+    - uninstall_kb_update
+
+- name: Enable Windows Update service
+  ansible.windows.win_service:
+    name: wuauserv
+    state: started
+    start_mode: auto
+  tags:
+    - never
+    - enable_update_service
+
+- name: Disable Windows Update service
+  ansible.windows.win_service:
+    name: wuauserv
+    state: stopped
+    start_mode: disabled
+  tags:
+    - never
+    - disable_update_service
+
+- name: Set automatic update settings
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    name: "{{ set_auto_update_settings_name }}"
+    data: "{{ set_auto_update_settings_data }}"
+    type: dword
+  tags:
+    - never
+    - set_auto_update_settings
+
+- name: Check for updates
+  ansible.windows.win_updates:
+    category_names: "{{ check_updates_category_names }}"
+    state: searched
+  register: check_update_result
+  tags:
+    - never
+    - check_updates
+
+- name: Reboot if required by updates
+  ansible.windows.win_reboot:
+    when: check_update_result.reboot_required
+  tags:
+    - never
+    - reboot_required
+
+- name: Configure WSUS server
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate
+    name: "{{ configure_wsus_name }}"
+    data: "{{ configure_wsus_data }}"
+    type: string
+  tags:
+    - never
+    - configure_wsus
+
+- name: Force Windows Update detection cycle
+  ansible.windows.win_shell: (New-Object -comObject 'Microsoft.Update.AutoUpdate').DetectNow()
+  tags:
+    - never
+    - force_update_detection
+
+- name: Set WSUS target group
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate
+    name: "{{ set_wsus_target_group_name }}"
+    data: "{{ set_wsus_target_group_data }}"
+    type: string
+  tags:
+    - never
+    - set_wsus_target_group
+
+- name: Set WSUS client-side targeting
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    name: "{{ set_wsus_client_side_targeting_name }}"
+    data: "{{ set_wsus_client_side_targeting_data }}"
+    type: dword
+  tags:
+    - never
+    - set_wsus_client_side_targeting
+
+- name: Set WSUS update detection frequency
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    name: "{{ set_wsus_detection_frequency_name }}"
+    data: "{{ set_wsus_detection_frequency_data }}"
+    type: dword
+  tags:
+    - never
+    - set_wsus_detection_frequency
+
+- name: Configure WSUS deadline grace period
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    name: "{{ set_wsus_deadline_grace_period_name }}"
+    data: "{{ set_wsus_deadline_grace_period_data }}"
+    type: dword
+  tags:
+    - never
+    - set_wsus_deadline_grace_period
+
+- name: Reset WSUS client ID
+  ansible.windows.win_shell: (New-Object -comObject 'Microsoft.Update.SystemInfo').ResetAuthorization()
+  tags:
+    - never
+    - reset_wsus_client_id
+
+- name: Install Intune Management Extension
+  ansible.windows.win_package:
+    path: "{{ install_intune_mgmt_ext_path }}"
+    state: present
+  tags:
+    - never
+    - install_intune_mgmt_ext
+
+- name: Uninstall Intune Management Extension
+  ansible.windows.win_package:
+    path: "{{ uninstall_intune_mgmt_ext_path }}"
+    state: absent
+  tags:
+    - never
+    - uninstall_intune_mgmt_ext
+
+- name: Start Intune Management Extension service
+  ansible.windows.win_service:
+    name: MicrosoftIntuneManagementExtension
+    state: started
+    start_mode: auto
+  tags:
+    - never
+    - start_intune_mgmt_ext_service
+
+- name: Stop Intune Management Extension service
+  ansible.windows.win_service:
+    name: MicrosoftIntuneManagementExtension
+    state: stopped
+    start_mode: manual
+  tags:
+    - never
+    - stop_intune_mgmt_ext_service
+
+- name: Configure Intune Management Extension settings
+  ansible.windows.win_template:
+    src: "{{ configure_intune_mgmt_ext_settings_src }}"
+    dest: "{{ configure_intune_mgmt_ext_settings_dest }}"
+  tags:
+    - never
+    - configure_intune_mgmt_ext_settings
+
+# - name: Install Chocolatey
+#   chocolatey.chocolatey.win_chocolatey:
+#     name: chocolatey
+#     state: present
+#   tags:
+#     - never
+#     - install_chocolatey
+
+# - name: Install specific Chocolatey package
+#   chocolatey.chocolatey.win_chocolatey:
+#     name: "{{ install_choco_package_name }}"
+#     state: present
+#   tags:
+#     - never
+#     - install_choco_package
+
+# - name: Uninstall specific Chocolatey package
+#   chocolatey.chocolatey.win_chocolatey:
+#     name: "{{ uninstall_choco_package_name }}"
+#     state: absent
+#   tags:
+#     - never
+#     - uninstall_choco_package
+
+# - name: Upgrade specific Chocolatey package
+#   chocolatey.chocolatey.win_chocolatey:
+#     name: "{{ upgrade_choco_package_name }}"
+#     state: latest
+#   tags:
+#     - never
+#     - upgrade_choco_package
+
+# - name: Configure Chocolatey feature
+#   win_shell: choco feature enable -n "{{ configure_choco_feature_name }}"
+#   when: configure_choco_feature_enable | bool
+#   tags:
+#     - never
+#     - configure_choco_feature

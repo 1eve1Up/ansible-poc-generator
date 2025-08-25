@@ -1,0 +1,88 @@
+---
+# vars file for windows_automation: WIP
+
+install_features:
+  - NET-Framework-45-Features
+  - Web-Server
+
+create_user_name: example_user
+create_user_password: S3cureP@ssw0rd!
+create_user_groups:
+  - Administrators
+
+win_group_membership_group_name: Administrators
+win_group_membership_members:
+  - Administrator
+  - student
+
+service_name: example_service
+service_path: "C:\\path\\to\\example_service.exe"
+
+firewall_rule_name: "Allow Example Port"
+firewall_rule_localport: 12345
+firewall_rule_direction: Inbound
+firewall_rule_action: Allow
+
+scheduled_task_name: "Example Task"
+scheduled_task_description: "An example scheduled task"
+scheduled_task_actions:
+  - path: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    arguments: '-NoProfile -ExecutionPolicy Unrestricted -File "C:\\Scripts\\example.ps1"'
+scheduled_task_triggers:
+  - type: daily
+    start_boundary: "2023-04-10T08:00:00"
+
+registry_path: "HKLM:\\SOFTWARE\\ExampleSoftware"
+registry_name: "EnableFeature"
+registry_data: 1
+
+copy_src: ./files/example.txt
+copy_dest: C:\destination\example.txt
+
+share_name: "ExampleShare"
+share_path: "C:\\SharedFolder"
+share_state: present
+
+powershell_script: "something.ps1"
+
+windows_command: "date"
+
+windows_shell_command: "C:\\somescript.ps1 >> C:\\somelog.txt"
+
+update_categories:
+  - SecurityUpdates
+  - CriticalUpdates
+  - UpdateRollups
+
+choco_packages:
+  - googlechrome
+  - sysinternals
+  - 7zip
+
+choco_packages_uninstall:
+  - adobereader
+
+choco_source_name: "custom_source"
+choco_source_url: "https://mycustomsource.example.com/"
+choco_source_state: present
+
+wsus_role: UpdateServices
+
+wsus_configure_command: |
+  Install-WindowsFeature -Name UpdateServices -IncludeManagementTools;
+  & 'C:\Program Files\Update Services\Tools\WsusUtil.exe' postinstall CONTENT_DIR=C:\WSUS
+
+wsus_products_command: |
+  # Set WSUS products configuration here
+  # Example: Set-WsusProduct -Name "Windows Server 2022" -Enable
+
+wsus_classifications_command: |
+  # Set WSUS classifications configuration here
+  # Example: Set-WsusClassification -Name "Critical Updates" -Enable
+
+wsus_approval_rules_command: |
+  # Set WSUS approval rules configuration here
+  # Example: Add-WsusComputerTargetGroup -Name "All Computers"
+
+sccm_client_path: "C:\\Windows\\ccmsetup"
+sccm_client_cache_path: "C:\\Windows\\ccmcache"

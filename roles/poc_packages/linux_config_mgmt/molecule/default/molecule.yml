@@ -1,0 +1,30 @@
+---
+driver: {name: docker}
+
+platforms:
+  - name: ubuntu2204
+    image: geerlingguy/docker-ubuntu2204-ansible:latest
+    user: root
+    privileged: true
+    command: /lib/systemd/systemd
+    tmpfs:
+      - "/run:rw,noexec,nosuid,nodev,mode=0755"
+      - "/run/lock:rw,noexec,nosuid,nodev,mode=0755"
+      - "/tmp:rw,exec,nosuid,nodev,mode=1777"
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    environment:
+      container: docker
+      HOME: /root
+      ANSIBLE_REMOTE_TMP: /tmp
+
+provisioner:
+  name: ansible
+  log: true
+  inventory:
+    group_vars:
+      all:
+        ansible_connection: docker
+        ansible_user: root
+        ansible_python_interpreter: /usr/bin/python3
+        ansible_remote_tmp: /tmp

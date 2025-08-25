@@ -1,0 +1,46 @@
+---
+# vars file for rhel_patching
+
+# 01: vars for common RHEL patching tasks in an Ansible tasks file
+
+update_cache: yes
+install_packages:
+  - vim
+  - git
+  - wget
+remove_packages:
+  - telnet
+install_security_updates: yes
+selinux_state: enforcing
+firewalld_zone: public
+firewalld_service:
+  - http
+  - https
+enable_services:
+  - firewalld
+  - sshd
+disable_services:
+  - postfix
+kernel_parameters:
+  net.ipv4.ip_forward: 0
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv4.conf.all.secure_redirects: 1
+
+# 02: vars for tasks covering tasks covering common yum operations,
+# such as managing repos, listing available patches
+
+repo_name: example-repo
+repo_description: Example Repository
+repo_baseurl: http://example.com/repo/
+repo_gpgcheck: yes
+repo_enabled: yes
+package_name: example-package
+package_version: 1.0.0
+
+# 03: vars for common tasks for Red Hat Satellite clients
+# and Red Hat Insights clients
+
+satellite_username: example_username
+satellite_password: example_password
+satellite_org_id: 1
+satellite_activation_key: example_activation_key

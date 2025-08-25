@@ -1,0 +1,31 @@
+---
+name: Lint & Syntax
+on:
+  pull_request:
+  push: {branches: [main]}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{runner.os}}-pip-${{hashFiles('**/requirements*.txt')}}-${{hashFiles('.pre-commit-config.yaml')}}
+          restore-keys: |
+            ${{runner.os}}-pip-
+
+      - name: Install tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core ansible-lint yamllint pre-commit
+
+      - name: yamllint
+        run: yamllint -s .
+

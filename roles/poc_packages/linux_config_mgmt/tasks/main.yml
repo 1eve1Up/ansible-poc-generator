@@ -1,0 +1,419 @@
+---
+# tasks file for linux_config_mgmt
+
+- name: Update all packages
+  ansible.builtin.dnf:
+    name: '*'
+    state: latest
+  tags:
+    - never
+    - update_packages
+  vars:
+    update_packages_timeout: 1800
+
+- name: Configure SELinux
+  ansible.posix.selinux:
+    policy: targeted
+    state: "{{ selinux_state }}"
+  tags:
+    - never
+    - configure_selinux
+
+- name: Set the timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+  tags:
+    - never
+    - set_timezone
+
+- name: Configure NTP
+  ansible.builtin.package:
+    name: "{{ ntp_package }}"
+    state: present
+  tags:
+    - never
+    - configure_ntp
+
+- name: Ensure NTP service is running and enabled
+  ansible.builtin.service:
+    name: "{{ ntp_service }}"
+    state: started
+    enabled: true
+  tags:
+    - never
+    - configure_ntp
+
+- name: Disable unnecessary services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop: "{{ disable_services }}"
+  tags:
+    - never
+    - disable_unnecessary_services
+
+- name: Enable necessary services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop: "{{ enable_services }}"
+  tags:
+    - never
+    - enable_necessary_services
+
+- name: Configure firewall rules
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    state: enabled
+    permanent: true
+    immediate: true
+  loop: "{{ firewalld_services }}"
+  tags:
+    - never
+    - configure_firewall
+
+- name: Create user accounts
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    state: present
+    groups: "{{ item.groups }}"
+    shell: "{{ item.shell }}"
+  loop: "{{ user_accounts }}"
+  tags:
+    - never
+    - create_users
+
+- name: Set up SSH key-based authentication
+  ansible.posix.authorized_key:
+    user: "{{ item.user }}"
+    state: present
+    key: "{{ item.key }}"
+  loop: "{{ ssh_authorized_keys }}"
+  tags:
+    - never
+    - configure_ssh
+
+- name: Add the universe repository
+  ansible.builtin.apt_repository:
+    repo: "{{ ubuntu_universe_repo }}"
+    state: present
+  tags:
+    - never
+    - add_universe_repo
+
+- name: Install necessary packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ ubuntu_packages }}"
+  tags:
+    - never
+    - install_packages
+
+- name: Remove unnecessary packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ ubuntu_remove_packages }}"
+  tags:
+    - never
+    - remove_packages
+
+- name: Configure UFW firewall
+  community.general.ufw:
+    rule: allow
+    name: "{{ item }}"
+    state: enabled
+  loop: "{{ ufw_services }}"
+  tags:
+    - never
+    - configure_ufw
+
+- name: Upgrade all packages to the latest version
+  ansible.builtin.apt:
+    upgrade: "{{ ubuntu_upgrade }}"
+  tags:
+    - never
+    - upgrade_packages
+
+# - name: Ensure password complexity rules are set
+#   replace:
+#     path: /etc/security/pwquality.conf
+#     regexp: "^(\s*)minlen\s*=\s*(\S+)"
+#     replace: "\g<1>minlen = {{ rhel_password_minlen }}"
+#   tags:
+#     - never
+#     - password_complexity
+
+- name: Configure password expiration policies
+  ansible.builtin.lineinfile:
+    dest: /etc/login.defs
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop: "{{ password_expiration_policies }}"
+  tags:
+    - never
+    - password_expiration
+
+- name: Ensure sysctl settings for network hardening
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_set: true
+    ignoreerrors: false
+    reload: true
+  loop: "{{ rhel_sysctl_settings }}"
+  tags:
+    - never
+    - sysctl_hardening
+
+- name: Ensure auditd is installed, enabled, and running
+  ansible.builtin.package:
+    name: audit
+    state: present
+  tags:
+    - never
+    - auditd_install
+
+- name: Enable and start auditd service
+  ansible.builtin.service:
+    name: auditd
+    state: started
+    enabled: true
+  tags:
+    - never
+    - auditd_service
+
+- name: Ensure SELinux is installed
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ selinux_packages }}"
+  tags:
+    - never
+    - selinux_install
+
+- name: Ensure SELinux policy utilities are installed
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ selinux_policy_utilities }}"
+  tags:
+    - never
+    - selinux_policy_utilities
+
+- name: Set SELinux booleans
+  ansible.posix.seboolean:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+    persistent: true
+  loop: "{{ selinux_booleans }}"
+  tags:
+    - never
+    - set_selinux_booleans
+
+- name: Manage SELinux file contexts
+  community.general.sefcontext:
+    target: "{{ item.target }}"
+    setype: "{{ item.setype }}"
+    ftype: "{{ item.ftype }}"
+    state: "{{ item.state }}"
+  loop: "{{ selinux_file_contexts }}"
+  tags:
+    - never
+    - manage_selinux_file_contexts
+
+- name: Restore SELinux file contexts
+  ansible.builtin.command:
+    cmd: restorecon -Rv "{{ item }}"
+  changed_when: true
+  loop: "{{ selinux_restore_paths }}"
+  tags:
+    - never
+    - restore_selinux_file_contexts
+
+- name: Add user groups
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ user_groups }}"
+  tags:
+    - never
+    - add_user_groups
+
+- name: Remove user accounts
+  ansible.builtin.user:
+    name: "{{ item }}"
+    state: absent
+    remove: true
+  loop: "{{ remove_user_accounts }}"
+  tags:
+    - never
+    - remove_users
+
+- name: Lock user accounts
+  ansible.builtin.user:
+    name: "{{ item }}"
+    password_lock: true
+  loop: "{{ lock_user_accounts }}"
+  tags:
+    - never
+    - lock_users
+
+- name: Unlock user accounts
+  ansible.builtin.user:
+    name: "{{ item }}"
+    password_lock: false
+  loop: "{{ unlock_user_accounts }}"
+  tags:
+    - never
+    - unlock_users
+
+- name: Set password expiration for user accounts
+  ansible.builtin.command:
+    cmd: "chage -M {{ item.days }} {{ item.user }}"
+  changed_when: true
+  loop: "{{ password_expiration_users }}"
+  tags:
+    - never
+    - set_password_expiration
+
+# Services
+- name: Install services
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ install_services }}"
+  tags:
+    - never
+    - install_services
+
+- name: Remove services
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ remove_services }}"
+  tags:
+    - never
+    - remove_services
+
+- name: Restart services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+  loop: "{{ restart_services }}"
+  tags:
+    - never
+    - restart_services
+
+- name: Reload services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: reloaded
+  loop: "{{ reload_services }}"
+  tags:
+    - never
+    - reload_services
+
+- name: Mask services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    masked: true
+  changed_when: true
+  loop: "{{ mask_services }}"
+  tags:
+    - never
+    - mask_services
+
+- name: Set default target to multi-user
+  ansible.builtin.command:
+    cmd: systemctl set-default multi-user.target
+  changed_when: true
+  tags:
+    - never
+    - set_default_target
+
+- name: Configure GRUB timeout
+  ansible.builtin.lineinfile:
+    dest: /etc/default/grub
+    regexp: '^GRUB_TIMEOUT='
+    line: 'GRUB_TIMEOUT={{ grub_timeout }}'
+  tags:
+    - never
+    - configure_grub_timeout
+
+- name: Configure GRUB command line
+  ansible.builtin.lineinfile:
+    dest: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX='
+    line: 'GRUB_CMDLINE_LINUX="{{ grub_cmdline_linux }}"'
+  changed_when: true
+  tags:
+    - never
+    - configure_grub_cmdline
+
+- name: Generate GRUB configuration
+  ansible.builtin.command:
+    cmd: grub2-mkconfig -o /boot/grub2/grub.cfg
+  changed_when: true
+  tags:
+    - never
+    - generate_grub_config
+
+- name: Disable unnecessary system services at boot
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: false
+  loop: "{{ disable_boot_services }}"
+  tags:
+    - never
+    - disable_boot_services
+
+- name: Install required packages for LVM
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ lvm_packages }}"
+  tags:
+    - never
+    - install_lvm_packages
+
+- name: Create Physical Volume
+  community.general.lvg:
+    vg: "{{ item.vg }}"
+    pvs: "{{ item.pvs }}"
+  loop: "{{ physical_volumes }}"
+  tags:
+    - never
+    - create_physical_volume
+
+- name: Create Volume Group
+  community.general.lvg:
+    vg: "{{ item.vg }}"
+    pvs: "{{ item.pvs }}"
+  loop: "{{ volume_groups }}"
+  tags:
+    - never
+    - create_volume_group
+
+- name: Create Logical Volume
+  community.general.lvol:
+    vg: "{{ item.vg }}"
+    lv: "{{ item.lv }}"
+    size: "{{ item.size }}"
+  loop: "{{ logical_volumes }}"
+  tags:
+    - never
+    - create_logical_volume
+
+- name: Create filesystem on Logical Volume
+  community.general.filesystem:
+    fstype: "{{ item.fstype }}"
+    dev: "{{ item.dev }}"
+  loop: "{{ filesystems }}"
+  tags:
+    - never
+    - create_filesystem

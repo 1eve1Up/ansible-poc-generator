@@ -1,0 +1,32 @@
+---
+skip_list:
+  - command-instead-of-module
+  - command-instead-of-shell
+  - experimental
+  - fqcn # TODO
+  - ignore-errors
+  - internal-error
+  - jinja # TODO
+  - key-order[task] # TODO
+  - literal-compare # TODO
+  - name # TODO
+  - no-changed-when
+  - no-free-form
+  - no-handler
+  - package-latest
+  - risky-file-permissions # TODO
+  - risky-shell-pipe # TODO
+  - var-naming # TODO
+  - yaml  # yamllint already runs
+
+exclude_paths:
+  - playbooks/**/files/
+  - playbooks/**/http-server-for-zip.zip
+  - playbooks/**/hello.zip
+  - roles/**/tests/
+  - playbooks/network_automation/
+
+warn_list:
+  - jinja
+  - name[casing]
+  - schema

@@ -1,0 +1,19 @@
+---
+- name: Install Red Hat Insights Client
+  hosts: all
+  become: true
+  tasks:
+    - name: Enable Red Hat Insights
+      ansible.builtin.package:
+        name: insights-client
+        state: present
+
+    - name: Register Red Hat Insights client
+      ansible.builtin.command:
+        cmd: insights-client --register
+      changed_when: true
+
+    - name: Check status of Red Hat Insights client
+      ansible.builtin.command:
+        cmd: insights-client --status
+      changed_when: true

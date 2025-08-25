@@ -1,0 +1,9 @@
+---
+collections:
+
+  # - name: ansible.controller
+  #   source: https://cloud.redhat.com/ansible/automation-hub/ansible/tower/
+  #   version: 4.2.0
+
+  - name: amazon.aws
+    source: https://galaxy.ansible.com

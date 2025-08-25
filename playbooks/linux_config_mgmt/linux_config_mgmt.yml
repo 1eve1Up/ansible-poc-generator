@@ -1,0 +1,7 @@
+---
+- name: Linux Config Mgmt
+  hosts: all
+  vars_files:
+    - ../../roles/poc_packages/linux_config_mgmt/vars/main.yml
+  tasks:
+    - import_tasks: ../../roles/poc_packages/linux_config_mgmt/tasks/main.yml

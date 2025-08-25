@@ -1,0 +1,312 @@
+---
+# tasks file for rhel_patching
+
+# 01: common RHEL patching tasks in an Ansible tasks file
+
+- name: Get uptime
+  ansible.builtin.command: /usr/bin/uptime
+  register: register_uptime
+  changed_when: false
+  tags:
+    - never
+    - register_uptime
+
+- name: Print print
+  ansible.builtin.debug:
+    var: register_uptime.stdout_lines
+  tags:
+    - never
+    - register_uptime
+
+- name: Update package cache
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: "{{ update_cache }}"
+  tags:
+    - never
+    - update_cache
+
+- name: Install required packages
+  ansible.builtin.dnf:
+    name: "{{ install_packages }}"
+    state: present
+  tags:
+    - never
+    - install_packages
+
+- name: Remove unnecessary packages
+  ansible.builtin.dnf:
+    name: "{{ remove_packages }}"
+    state: absent
+  tags:
+    - never
+    - remove_packages
+
+- name: Install security updates
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    security: "{{ install_security_updates }}"
+  tags:
+    - never
+    - install_security_updates
+
+- name: Ensure SELinux is enforcing
+  ansible.posix.selinux:
+    policy: targeted
+    state: "{{ selinux_state }}"
+  tags:
+    - never
+    - selinux_state
+
+- name: Configure firewalld
+  ansible.posix.firewalld:
+    zone: "{{ firewalld_zone }}"
+    service: "{{ firewalld_service }}"
+    state: enabled
+  tags:
+    - never
+    - firewalld
+
+- name: Enable and start required services
+  ansible.builtin.systemd:
+    name: "{{ enable_services }}"
+    state: started
+    enabled: true
+  tags:
+    - never
+    - enable_services
+
+- name: Disable and stop unnecessary services
+  ansible.builtin.systemd:
+    name: "{{ disable_services }}"
+    state: stopped
+    enabled: false
+  tags:
+    - never
+    - disable_services
+
+- name: Set kernel parameters
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_set: true
+  loop: "{{ kernel_parameters | dict2items }}"
+  tags:
+    - never
+    - kernel_parameters
+
+# cat: /etc/dnf/automatic.conf: No such file or directory
+- name: Configure automatic updates
+  ansible.builtin.template:
+    src: dnf-automatic.conf.j2
+    dest: /etc/dnf/automatic.conf
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - never
+    - configure_automatic_updates
+
+# 02: tasks covering tasks covering common yum/dnf operations,
+# such as managing repos, listing available patches
+
+- name: Add a new repository
+  ansible.builtin.yum_repository:
+    name: "{{ repo_name }}"
+    description: "{{ repo_description }}"
+    baseurl: "{{ repo_baseurl }}"
+    gpgcheck: "{{ repo_gpgcheck }}"
+    enabled: "{{ repo_enabled }}"
+  tags:
+    - never
+    - add_repository
+
+- name: Remove a repository
+  ansible.builtin.yum_repository:
+    name: "{{ repo_name }}"
+    state: absent
+  tags:
+    - never
+    - remove_repository
+
+- name: Enable a repository
+  ansible.builtin.yum_repository:
+    name: "{{ repo_name }}"
+    baseurl: "{{ repo_baseurl }}"
+    description: "{{ repo_description }}"
+    enabled: true
+  tags:
+    - never
+    - enable_repository
+
+- name: Disable a repository
+  ansible.builtin.yum_repository:
+    name: "{{ repo_name }}"
+    baseurl: "{{ repo_baseurl }}"
+    description: "{{ repo_description }}"
+    enabled: false
+  tags:
+    - never
+    - disable_repository
+
+- name: List available updates
+  ansible.builtin.command:
+    cmd: dnf check-update
+  register: available_updates
+  changed_when: false
+  tags:
+    - never
+    - list_updates
+
+- name: Display available updates
+  ansible.builtin.debug:
+    var: available_updates.stdout_lines
+  tags:
+    - never
+    - list_updates
+
+- name: List installed packages
+  ansible.builtin.package_facts:
+    manager: auto
+  tags:
+    - never
+    - list_installed_packages
+
+- name: Display installed packages
+  ansible.builtin.debug:
+    var: ansible_facts.packages
+  tags:
+    - never
+    - list_installed_packages
+
+- name: Install a specific package version
+  ansible.builtin.dnf:
+    name: "{{ package_name }}-{{ package_version }}"
+    state: present
+  tags:
+    - never
+    - install_specific_version
+
+- name: Downgrade a package
+  ansible.builtin.dnf:
+    name: "{{ package_name }}"
+    state: present
+    allow_downgrade: true
+  tags:
+    - never
+    - downgrade_package
+
+# 03: common tasks for Red Hat Satellite clients
+# and Red Hat Insights clients
+
+- name: Install Satellite client packages
+  ansible.builtin.dnf:
+    name:
+      - katello-agent
+      - katello-host-tools
+      - katello-host-tools-tracer
+    state: present
+  tags:
+    - never
+    - install_satellite_client
+
+# The error appears to be in '/runner/project/roles/poc_packages/rhel_patching/tasks/main.yml': line 155, column 3, but may
+# be elsewhere in the file depending on the exact syntax problem.
+
+# - name: Register Satellite client
+#   ansible.builtin.redhat_subscription:
+#     state: present
+#     username: "{{ satellite_username }}"
+#     password: "{{ satellite_password }}"
+#     org_id: "{{ satellite_org_id }}"
+#     activationkey: "{{ satellite_activation_key }}"
+#   tags:
+#     - never
+#     - register_satellite_client
+
+- name: Enable Red Hat Insights
+  ansible.builtin.package:
+    name: insights-client
+    state: present
+  tags:
+    - never
+    - install_insights_client
+
+- name: Register Red Hat Insights client
+  ansible.builtin.command:
+    cmd: insights-client --register
+  changed_when: true
+  tags:
+    - never
+    - register_insights_client
+
+- name: Check status of Red Hat Insights client
+  ansible.builtin.command:
+    cmd: "insights-client --status"
+  changed_when: false
+  register: register_insights_client_status
+  tags:
+    - never
+    - insights_client_status
+
+- name: Print status of Red Hat Insights client
+  ansible.builtin.debug:
+    msg: "{{ register_insights_client_status.stdout_lines }}"
+  tags:
+    - never
+    - insights_client_status
+
+- name: Configure Red Hat Insights client
+  ansible.builtin.template:
+    src: insights-client.conf.j2
+    dest: /etc/insights-client/insights-client.conf
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - never
+    - configure_insights_client
+
+# insights-client: error: unrecognized arguments: --autoconfig
+# - name: Enable Red Hat Insights auto-config
+#   ansible.builtin.command:
+#     cmd: insights-client --autoconfig
+#   tags:
+#   - never
+#   - insights_auto_config
+
+- name: Run Red Hat Insights client
+  ansible.builtin.command:
+    cmd: "insights-client --check-results"
+  changed_when: false
+  tags:
+    - never
+    - run_insights_client
+
+# - name: Unregister Red Hat Satellite client
+#   ansible.builtin.redhat_subscription:
+#     state: absent
+#     username: "{{ satellite_username }}"
+#     password: "{{ satellite_password }}"
+#   tags:
+#     - never
+#     - unregister_satellite_client
+
+- name: Unregister Red Hat Insights client
+  ansible.builtin.command:
+    cmd: "insights-client --unregister"
+  changed_when: true
+  tags:
+    - never
+    - unregister_insights_client
+
+- name: Remove Red Hat Insights client
+  ansible.builtin.package:
+    name: insights-client
+    state: absent
+  tags:
+    - never
+    - remove_insights_client

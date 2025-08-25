@@ -1,0 +1,83 @@
+---
+- name: Meraki - Common Tasks
+  hosts: localhost
+  gather_facts: no
+  collections:
+    - cisco.meraki
+
+  vars:
+    MERAKI_ORG_ID: your_meraki_organization_id
+    MERAKI_NET_ID: your_meraki_network_id
+    MERAKI_API_KEY: your_meraki_api_key
+
+  tasks:
+    - name: Configure SSIDs
+      cisco.meraki.meraki_ssid:
+        org_id: "{{ MERAKI_ORG_ID }}"
+        net_id: "{{ MERAKI_NET_ID }}"
+        api_key: "{{ MERAKI_API_KEY }}"
+        state: present
+        number: "{{ item.number }}"
+        name: "{{ item.name }}"
+        enabled: "{{ item.enabled }}"
+        auth_mode: "{{ item.auth_mode }}"
+        encryption_mode: "{{ item.encryption_mode }}"
+        psk: "{{ item.psk }}"
+      loop: "{{ ssids }}"
+      tags: configure_ssids
+
+    - name: Configure switch ports
+      cisco.meraki.meraki_switchport:
+        org_id: "{{ MERAKI_ORG_ID }}"
+        net_id: "{{ MERAKI_NET_ID }}"
+        api_key: "{{ MERAKI_API_KEY }}"
+        serial: "{{ item.serial }}"
+        number: "{{ item.number }}"
+        name: "{{ item.name }}"
+        tags: "{{ item.tags }}"
+        enabled: "{{ item.enabled }}"
+        type: "{{ item.type }}"
+        vlan: "{{ item.vlan }}"
+        voice_vlan: "{{ item.voice_vlan }}"
+        allowed_vlans: "{{ item.allowed_vlans }}"
+      loop: "{{ switch_ports }}"
+      tags: configure_switch_ports
+
+    - name: Create new VLANs
+      cisco.meraki.meraki_vlan:
+        org_id: "{{ MERAKI_ORG_ID }}"
+        net_id: "{{ MERAKI_NET_ID }}"
+        api_key: "{{ MERAKI_API_KEY }}"
+        state: present
+        id: "{{ item.id }}"
+        name: "{{ item.name }}"
+        subnet: "{{ item.subnet }}"
+        appliance_ip: "{{ item.appliance_ip }}"
+      loop: "{{ vlans }}"
+      tags: create_vlans
+
+    - name: Configure Meraki network devices
+      cisco.meraki.meraki_device:
+        org_id: "{{ MERAKI_ORG_ID }}"
+        net_id: "{{ MERAKI_NET_ID }}"
+        api_key: "{{ MERAKI_API_KEY }}"
+        state: present
+        serial: "{{ item.serial }}"
+        name: "{{ item.name }}"
+        tags: "{{ item.tags }}"
+        lat: "{{ item.lat }}"
+        lng: "{{ item.lng }}"
+        address: "{{ item.address }}"
+      loop: "{{ devices }}"
+      tags: configure_devices
+
+    - name: Configure Meraki network firewall rules
+      cisco.meraki.meraki_mx_l3_firewall:
+        org_id: "{{ MERAKI_ORG_ID }}"
+        net_id: "{{ MERAKI_NET_ID }}"
+        api_key: "{{ MERAKI_API_KEY }}"
+        state: present
+        rules:
+          - "{{ item }}"
+      loop: "{{ firewall_rules }}"
+      tags: configure_firewall_rules

@@ -1,0 +1,24 @@
+---
+job_templates_tags_list:
+  - configure_wsus
+  - configure_wsus_approval_rules
+  - configure_wsus_classifications
+  - configure_wsus_products
+  - copy_files
+  - create_user
+  - install_chocolatey
+  - install_features
+  - install_wsus_role
+  - manage_service
+  - manage_share
+  - registry
+  - remove_sccm_directories
+  - remove_sccm_registry_keys
+  - restart_computer
+  - run_powershell
+  - run_win_command
+  - run_win_shell_command
+  - stop_sccm_services
+  - uninstall_sccm_client
+  - win_group_membership
+  - windows_updates

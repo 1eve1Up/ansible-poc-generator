@@ -1,0 +1,7 @@
+ansible-navigator.log
+.ansible
+.DS_Store
+collections/ansible_collections/
+collections/vendor/
+test-inventory
+vars.yml

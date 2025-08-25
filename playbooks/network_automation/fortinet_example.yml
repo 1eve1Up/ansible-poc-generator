@@ -1,0 +1,82 @@
+---
+- name: Fortinet - Common Tasks
+  hosts: fortinet
+  gather_facts: no
+  collections:
+    - fortinet.fortios
+
+  vars:
+    ansible_connection: ansible.netcommon.httpapi
+    ansible_httpapi_use_ssl: yes
+    ansible_httpapi_validate_certs: no
+    ansible_user: your_username
+    ansible_password: your_password
+
+  tasks:
+    - name: Configure interfaces
+      fortinet.fortios.fortios_system_interface:
+        login_banner: "{{ login_banner }}"
+        state: present
+        system_interface:
+          name: "{{ item.name }}"
+          description: "{{ item.description }}"
+          type: "{{ item.type }}"
+          ip: "{{ item.ip }}"
+          allowaccess: "{{ item.allowaccess }}"
+      loop: "{{ interfaces }}"
+      tags: configure_interfaces
+
+    - name: Configure firewall policies
+      fortinet.fortios.fortios_firewall_policy:
+        state: present
+        firewall_policy:
+          policyid: "{{ item.policyid }}"
+          name: "{{ item.name }}"
+          srcintf: "{{ item.srcintf }}"
+          dstintf: "{{ item.dstintf }}"
+          srcaddr: "{{ item.srcaddr }}"
+          dstaddr: "{{ item.dstaddr }}"
+          action: "{{ item.action }}"
+          schedule: "{{ item.schedule }}"
+          service: "{{ item.service }}"
+          nat: "{{ item.nat }}"
+      loop: "{{ firewall_policies }}"
+      tags: configure_firewall_policies
+
+    - name: Configure VPN IPsec tunnels
+      fortinet.fortios.fortios_vpn_ipsec_phase1_interface:
+        state: present
+        vpn_ipsec_phase1_interface:
+          name: "{{ item.name }}"
+          type: "{{ item.type }}"
+          interface: "{{ item.interface }}"
+          peertype: "{{ item.peertype }}"
+          psksecret: "{{ item.psksecret }}"
+          proposal: "{{ item.proposal }}"
+          dhgrp: "{{ item.dhgrp }}"
+          remote_gw: "{{ item.remote_gw }}"
+      loop: "{{ vpn_ipsec_tunnels }}"
+      tags: configure_vpn_ipsec_tunnels
+
+    - name: Configure static routes
+      fortinet.fortios.fortios_router_static:
+        state: present
+        router_static:
+          seq_num: "{{ item.seq_num }}"
+          dst: "{{ item.dst }}"
+          device: "{{ item.device }}"
+          gateway: "{{ item.gateway }}"
+          distance: "{{ item.distance }}"
+      loop: "{{ static_routes }}"
+      tags: configure_static_routes
+
+    - name: Configure admin accounts
+      fortinet.fortios.fortios_system_admin:
+        state: present
+        system_admin:
+          name: "{{ item.name }}"
+          password: "{{ item.password }}"
+          accprofile: "{{ item.accprofile }}"
+          trusthost1: "{{ item.trusthost1 }}"
+      loop: "{{ admin_accounts }}"
+      tags: configure_admin_accounts

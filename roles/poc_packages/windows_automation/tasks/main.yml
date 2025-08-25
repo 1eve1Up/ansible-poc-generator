@@ -1,0 +1,238 @@
+---
+# tasks file for windows_automation
+
+- name: Install Windows features
+  ansible.windows.win_feature:
+    name: "{{ install_features }}"
+    state: present
+  tags:
+    - never
+    - install_features
+
+- name: Create local user
+  ansible.windows.win_user:
+    name: "{{ create_user_name }}"
+    password: "{{ create_user_password }}"
+    state: present
+    groups: "{{ create_user_groups }}"
+  tags:
+    - never
+    - create_user
+
+- name: Ensure Administrators group membership
+  ansible.windows.win_group_membership:
+    name: "{{ win_group_membership_group_name }} "
+    members: "{{ win_group_membership_members }}"
+    state: present
+  tags:
+    - never
+    - win_group_membership
+
+- name: Install and start Windows services
+  ansible.windows.win_service:
+    name: "{{ service_name }}"
+    state: started
+    start_mode: auto
+    path: "{{ service_path }}"
+  tags:
+    - never
+    - manage_service
+
+# - name: Configure Windows firewall rules
+#   ansible.windows.win_firewall_rule:
+#     name: "{{ firewall_rule_name }}"
+#     localport: "{{ firewall_rule_localport }}"
+#     direction: "{{ firewall_rule_direction }}"
+#     action: "{{ firewall_rule_action }}"
+#     state: present
+#   tags:
+#    - never
+#     - configure_firewall
+
+# - name: Create and configure scheduled task
+#   ansible.windows.win_scheduled_task:
+#     name: "{{ scheduled_task_name }}"
+#     description: "{{ scheduled_task_description }}"
+#     actions: "{{ scheduled_task_actions }}"
+#     triggers: "{{ scheduled_task_triggers }}"
+#     state: present
+#   tags:
+#    - never
+#     - scheduled_task
+
+- name: Set registry values
+  ansible.windows.win_regedit:
+    path: "{{ registry_path }}"
+    name: "{{ registry_name }}"
+    data: "{{ registry_data }}"
+    state: present
+  tags:
+    - never
+    - registry
+
+- name: Copy files to the remote host
+  ansible.windows.win_copy:
+    src: "{{ copy_src }}"
+    dest: "{{ copy_dest }}"
+  tags:
+    - never
+    - copy_files
+
+- name: Create and manage shares
+  ansible.windows.win_share:
+    name: "{{ share_name }}"
+    path: "{{ share_path }}"
+    state: "{{ share_state }}"
+  tags:
+    - never
+    - manage_share
+
+- name: Run a PowerShell script
+  ansible.windows.win_powershell: "{{ powershell_script }}"
+  tags:
+    - never
+    - run_powershell
+
+- name: Run a Windows command
+  ansible.windows.win_command: "{{ windows_command }}"
+  tags:
+    - never
+    - run_win_command
+
+- name: Run a command or script in the remote shell and redirect output
+  ansible.windows.win_shell: "{{ windows_shell_command }}"
+  tags:
+    - never
+    - run_win_shell_command
+
+- name: Install and manage Windows updates
+  ansible.windows.win_updates:
+    category_names: "{{ update_categories }}"
+    state: installed
+  tags:
+    - never
+    - windows_updates
+
+- name: Ensure Chocolatey is installed
+  ansible.windows.win_shell: |
+    if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+      Set-ExecutionPolicy Bypass -Scope Process -Force;
+      [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+      iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    }
+  tags:
+    - never
+    - install_chocolatey
+
+# - name: Install packages with Chocolatey
+#   ansible.windows.win_chocolatey:
+#     name: "{{ choco_packages }}"
+#     state: present
+#   tags:
+#    - never
+#     - install_packages
+
+# - name: Upgrade packages with Chocolatey
+#   ansible.windows.win_chocolatey:
+#     name: "{{ choco_packages }}"
+#     state: latest
+#   tags:
+#    - never
+#     - upgrade_packages
+
+# - name: Uninstall packages with Chocolatey
+#   ansible.windows.win_chocolatey:
+#     name: "{{ choco_packages_uninstall }}"
+#     state: absent
+#   tags:
+#    - never
+#     - uninstall_packages
+
+# - name: Configure Chocolatey sources
+#   ansible.windows.win_chocolatey_source:
+#     name: "{{ choco_source_name }}"
+#     source: "{{ choco_source_url }}"
+#     state: "{{ choco_source_state }}"
+#   tags:
+#    - never
+#     - configure_sources
+
+- name: Install WSUS role
+  ansible.windows.win_feature:
+    name: "{{ wsus_role }}"
+    state: present
+  tags:
+    - never
+    - install_wsus_role
+
+- name: Configure WSUS
+  ansible.windows.win_shell: "{{ wsus_configure_command }}"
+  tags:
+    - never
+    - configure_wsus
+
+- name: Configure WSUS products
+  ansible.windows.win_shell: "{{ wsus_products_command }}"
+  tags:
+    - never
+    - configure_wsus_products
+
+- name: Configure WSUS update classifications
+  ansible.windows.win_shell: "{{ wsus_classifications_command }}"
+  tags:
+    - never
+    - configure_wsus_classifications
+
+- name: Configure automatic approval rules in WSUS
+  ansible.windows.win_shell: "{{ wsus_approval_rules_command }}"
+  tags:
+    - never
+    - configure_wsus_approval_rules
+
+- name: Stop SCCM Client services
+  ansible.windows.win_service:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - CcmExec
+    - smstsmgr
+  tags:
+    - never
+    - stop_sccm_services
+
+- name: Uninstall SCCM Client
+  ansible.windows.win_package:
+    path: "{{ sccm_client_path }}\\ccmsetup.exe"
+    arguments: "/uninstall"
+    state: absent
+  tags:
+    - never
+    - uninstall_sccm_client
+
+- name: Remove SCCM Client directories
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ sccm_client_path }}"
+    - "{{ sccm_client_cache_path }}"
+  tags:
+    - never
+    - remove_sccm_directories
+
+- name: Remove SCCM Client registry keys
+  ansible.windows.win_regedit:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "HKLM:\\Software\\Microsoft\\CCM"
+    - "HKLM:\\Software\\Microsoft\\CCMSetup"
+  tags:
+    - never
+    - remove_sccm_registry_keys
+
+- name: Restart computer to complete removal
+  ansible.windows.win_reboot:
+  tags:
+    - never
+    - restart_computer

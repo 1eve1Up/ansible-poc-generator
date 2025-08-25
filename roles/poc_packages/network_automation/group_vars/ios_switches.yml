@@ -1,0 +1,10 @@
+---
+# group_vars/ios_switches.yml
+ansible_connection: network_cli
+ansible_network_os: cisco.ios.ios
+
+ansible_user: "{{ lookup('env','IOS_USER') | default('admin', true) }}"
+ansible_password: "{{ lookup('env','IOS_PASS') }}"
+ansible_become: true
+ansible_become_method: enable
+ansible_become_password: "{{ lookup('env','IOS_ENABLE') | default(ansible_password, true) }}"

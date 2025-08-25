@@ -1,0 +1,28 @@
+---
+# vars file for windows_patching
+
+install_updates_category_names: ["CriticalUpdates", "SecurityUpdates"]
+install_kb_update_path: "http://download.windowsupdate.com/c/msdownload/update/software/updt/2023/04/kb_example_file.msu"
+uninstall_kb_update_path: "http://download.windowsupdate.com/c/msdownload/update/software/updt/2023/04/kb_example_file.msu"
+set_auto_update_settings_name: "AUOptions"
+set_auto_update_settings_data: 4
+check_updates_category_names: ["CriticalUpdates", "SecurityUpdates"]
+configure_wsus_name: "WUServer"
+configure_wsus_data: "http://wsus.example.com:8530"
+set_wsus_target_group_name: "TargetGroup"
+set_wsus_target_group_data: "MyTargetGroup"
+set_wsus_client_side_targeting_name: "UseWUServer"
+set_wsus_client_side_targeting_data: 1
+set_wsus_detection_frequency_name: "DetectionFrequency"
+set_wsus_detection_frequency_data: 8
+set_wsus_deadline_grace_period_name: "DeadlineGracePeriod"
+set_wsus_deadline_grace_period_data: 7
+install_intune_mgmt_ext_path: "https://download.microsoft.com/download/0/5/0/050C7609-9F67-47E3-83B3-0AABB6E3A6D5/IntuneManagementExtension.msi"
+uninstall_intune_mgmt_ext_path: "https://download.microsoft.com/download/0/5/0/050C7609-9F67-47E3-83B3-0AABB6E3A6D5/IntuneManagementExtension.msi"
+configure_intune_mgmt_ext_settings_src: "intune_mgmt_ext_settings.j2"
+configure_intune_mgmt_ext_settings_dest: "C:\\ProgramData\\Microsoft\\IntuneManagementExtension\\Settings\\settings.json"
+install_choco_package_name: "notepadplusplus"
+uninstall_choco_package_name: "notepadplusplus"
+upgrade_choco_package_name: "notepadplusplus"
+configure_choco_feature_name: "useFipsCompliantChecksums"
+configure_choco_feature_enable: true

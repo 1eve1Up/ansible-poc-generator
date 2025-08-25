@@ -1,0 +1,14 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check that systemd exists (basic sanity)
+      ansible.builtin.stat:
+        path: /sbin/init
+      register: init_stat
+
+    - name: Assert expectations
+      ansible.builtin.assert:
+        that:
+          - init_stat.stat.exists

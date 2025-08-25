@@ -1,0 +1,57 @@
+---
+- name: Yum Security Updates and Reboot
+  hosts: all
+  become: true
+  vars:
+    reboot_if_updates: "yes"
+  tasks:
+    - name: Check for yum security updates
+      ansible.builtin.yum:
+        list: updates
+        security: true
+      register: yum_check_update
+      ignore_errors: true
+
+    - name: Install security updates if found
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+        security: true
+      when: yum_check_update.results | length > 0
+      register: yum_security_updates
+
+    - name: Update and reboot
+      when: reboot_if_updates == 'yes' and yum_security_updates.changed
+      block:
+        - name: Reboot the host if updates were installed
+          ansible.builtin.reboot:
+            reboot_timeout: 300
+
+        - name: Wait for the host to be reachable via SSH
+          ansible.builtin.wait_for_connection:
+            timeout: 300
+
+        - name: Check for yum security updates after reboot
+          ansible.builtin.yum:
+            list: updates
+            security: true
+          register: yum_check_update_after_reboot
+          ignore_errors: true
+
+    - name: Print the uptime of the host
+      ansible.builtin.command: uptime
+      changed_when: false
+      register: uptime_output
+
+    - name: Display uptime
+      ansible.builtin.debug:
+        var: uptime_output.stdout
+
+    - name: Display the total time the job took for this host
+      ansible.builtin.debug:
+        msg: "Total time for this host: {{ total_minutes }} minutes and {{ total_seconds }} seconds"
+      vars:
+        playbook_start: "{{ lookup('ansible.builtin.pipe', 'date +%s') }}"
+        total_seconds_raw: "{{ (ansible_date_time.epoch | int) - (playbook_start | int) }}"
+        total_minutes: "{{ (total_seconds_raw // 60) }}"
+        total_seconds: "{{ (total_seconds_raw % 60) }}"

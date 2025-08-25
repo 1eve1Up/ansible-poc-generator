@@ -1,0 +1,41 @@
+---
+collections:
+
+  - name: ansible.controller
+    source: https://galaxy.ansible.com
+
+  - name: ansible.platform
+    source: https://galaxy.ansible.com
+
+  # - source: collections/vendor/ansible-controller-4.6.18.tar.gz
+  #   type: file
+
+  # - source: collections/vendor/ansible-platform-2.5.20250702.tar.gz
+  #   type: file
+
+  - name: ansible.utils
+    source: https://galaxy.ansible.com
+
+  - name: amazon.aws
+    source: https://galaxy.ansible.com
+
+  - name: ansible.posix
+    source: https://galaxy.ansible.com
+
+  - name: ansible.windows
+    source: https://galaxy.ansible.com
+
+  - name: chocolatey.chocolatey
+    source: https://galaxy.ansible.com
+
+  - name: cisco.ios
+    source: https://galaxy.ansible.com
+
+  - name: community.general
+    source: https://galaxy.ansible.com
+
+  - name: community.mysql
+    source: https://galaxy.ansible.com
+
+  - name: https://github.com/ansible-collections/community.windows.git
+    type: git

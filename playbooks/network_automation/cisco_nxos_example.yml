@@ -1,0 +1,71 @@
+---
+- name: Cisco NX-OS - Common Tasks
+  hosts: nxos
+  gather_facts: no
+  collections:
+    - cisco.nxos
+
+  vars:
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_user: your_username
+    ansible_password: your_password
+    ansible_become: yes
+    ansible_become_method: enable
+    ansible_become_password: your_enable_password
+    ansible_command_timeout: 60
+
+  tasks:
+    - name: Configure interfaces
+      cisco.nxos.nxos_interfaces:
+        config:
+          - name: "{{ item.name }}"
+            description: "{{ item.description }}"
+            enabled: "{{ item.enabled }}"
+            ipv4:
+              address: "{{ item.ipv4_address }}"
+              masklen: "{{ item.ipv4_masklen }}"
+        state: replaced
+      loop: "{{ interfaces }}"
+
+    - name: Configure VLANs
+      cisco.nxos.nxos_vlans:
+        config:
+          - vlan_id: "{{ item.vlan_id }}"
+            name: "{{ item.name }}"
+            state: "{{ item.state }}"
+        state: replaced
+      loop: "{{ vlans }}"
+
+    - name: Configure access control lists (ACLs)
+      cisco.nxos.nxos_acls:
+        config:
+          - afi: "{{ item.afi }}"
+            acls:
+              - name: "{{ item.name }}"
+                acl_type: "{{ item.acl_type }}"
+                aces:
+                  - "{{ item.aces }}"
+        state: replaced
+      loop: "{{ acls }}"
+
+    - name: Enable routing protocols
+      cisco.nxos.nxos_routing:
+        config:
+          - "{{ item }}"
+        state: replaced
+      loop: "{{ routing_protocols }}"
+
+    - name: Configure Network Time Protocol (NTP)
+      cisco.nxos.nxos_ntp:
+        config:
+          servers:
+            - server: "{{ item.server }}"
+              vrf: "{{ item.vrf }}"
+          source: "{{ ntp_source }}"
+          authentication_keys:
+            - key_id: "{{ ntp_auth_key_id }}"
+              algorithm: "{{ ntp_auth_algorithm }}"
+              key: "{{ ntp_auth_key }}"
+          trusted_keys: "{{ ntp_trusted_keys }}"
+        state: replaced
+      loop: "{{ ntp_servers }}"

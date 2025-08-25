@@ -1,0 +1,27 @@
+---
+job_templates_tags_list:
+  - check_updates
+  - configure_choco_feature
+  - configure_intune_mgmt_ext_settings
+  - configure_wsus
+  - disable_update_service
+  - enable_update_service
+  - force_update_detection
+  - install_choco_package
+  - install_chocolatey
+  - install_intune_mgmt_ext
+  - install_kb_update
+  - install_updates
+  - reboot_required
+  - reset_wsus_client_id
+  - set_auto_update_settings
+  - set_wsus_client_side_targeting
+  - set_wsus_deadline_grace_period
+  - set_wsus_detection_frequency
+  - set_wsus_target_group
+  - start_intune_mgmt_ext_service
+  - stop_intune_mgmt_ext_service
+  - uninstall_choco_package
+  - uninstall_intune_mgmt_ext
+  - uninstall_kb_update
+  - upgrade_choco_package

@@ -1,0 +1,10 @@
+---
+extends: default
+rules:
+  line-length: {max: 160}
+  truthy: disable
+  comments: {min-spaces-from-content: 1}
+ignore: |
+  **/*.zip
+  **/meta/main.yml
+  .github/**

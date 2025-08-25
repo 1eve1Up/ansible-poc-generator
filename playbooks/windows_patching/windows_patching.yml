@@ -1,0 +1,10 @@
+---
+- hosts: all
+  vars_files:
+    - ../../roles/poc_packages/windows_patching/vars/main.yml
+  tasks:
+    - name: Check for tags
+      ansible.builtin.fail:
+        msg: "Please run this playbook with at least one tag. CLI example: `ansible-playbook -i inventory playbook.yml --tags 'task1'`"
+      when: (ansible_run_tags | length) == 0 or ('all' in ansible_run_tags)
+    - ansible.builtin.import_tasks: ../../roles/poc_packages/windows_patching/tasks/main.yml

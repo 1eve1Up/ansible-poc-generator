@@ -1,0 +1,188 @@
+---
+- name: "Level Up Ansible POC Packages - Bootstrap"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    poc_package: "{{ poc_package | default('rhel_patching') }}"
+    state: "present"
+  vars_files:
+    - vars.yml
+    - "job_template_vars/{{ poc_package | default('rhel_patching') }}/main.yml"
+  collections:
+    - ansible.controller
+    - ansible.platform
+
+  tasks:
+
+    # ansible.platform collection tasks:
+
+    # https://console.redhat.com/ansible/automation-hub/repo/published/ansible/platform/content/module/organization/
+    - name: "Create POC organization"
+      ansible.platform.organization:
+        name: "POC"
+        aap_token: "{{ aap_token }}"
+        aap_validate_certs: false
+        state: "present" # hardcoded
+      register: poc_organization
+      tags:
+        - bootstrap_organization
+
+    # ansible.controller collection tasks:
+
+    # https://console.redhat.com/ansible/automation-hub/repo/published/ansible/controller/content/module/credential/
+    - name: "Create machine credential: Ansible POC Packages Controller"
+      ansible.controller.credential:
+        name: "POC AAP Controller"
+        organization: "POC"
+        credential_type: "Machine"
+        inputs:
+          username: "{{ poc_aap_controller_username }}"
+          password: "{{ poc_aap_controller_password }}"
+        state: "{{ state }}"
+        validate_certs: false
+      register: poc_aap_controller_machine_cred
+      # no_log: true
+      tags:
+        - bootstrap_credentials
+
+    # https://console.redhat.com/ansible/automation-hub/repo/published/ansible/controller/content/module/credential/
+    - name: "Create Credential - Source Control example"
+      ansible.controller.credential:
+        name: "POC Source Control"
+        organization: "POC"
+        credential_type: "Source Control"
+        validate_certs: false
+        inputs:
+          username: "{{ scm_username }}"
+          password: "{{ scm_pat }}"
+        controller_config_file: "~/.tower_cli.cfg"
+        state: "{{ state }}"
+      register: poc_source_control_cred
+      no_log: true
+      tags:
+        - bootstrap_credentials
+
+    # https://console.redhat.com/ansible/automation-hub/repo/published/ansible/controller/content/module/project/
+    - name: "Create project: Ansible POC Packages"
+      ansible.controller.project:
+        name: "POC"
+        organization: "POC"
+        credential: "POC Source Control"
+        scm_url: "https://github.com/1eve1Up/ansible-poc-packages.git"
+        scm_type: git
+        state: "{{ state }}"
+      register: poc_project
+      tags:
+        - bootstrap_project
+
+    # https://console.redhat.com/ansible/automation-hub/repo/published/ansible/controller/content/module/inventory/
+    - name: "Create POC AAP Inventory"
+      ansible.controller.inventory:
+        name: "POC AAP"
+        organization: "POC"
+        state: "{{ state }}"
+      register: poc_aap_inventory
+      tags:
+        - bootstrap_inventories
+
+    # https://console.redhat.com/ansible/automation-hub/repo/published/ansible/controller/content/module/host/
+    - name: "Create Host: {{ aap_hostname | urlsplit('hostname') }}"
+      ansible.controller.host:
+        name: "{{ aap_hostname | urlsplit('hostname') }}"
+        inventory: "POC AAP"
+        enabled: false
+        aap_validate_certs: false
+        state: "{{ state }}"
+      register: poc_aap_inventory_controller_host
+      tags:
+        - bootstrap_inventories
+
+    # https://console.redhat.com/ansible/automation-hub/repo/published/ansible/controller/content/module/inventory/
+    - name: "Create POC Inventory"
+      ansible.controller.inventory:
+        name: "POC"
+        organization: "POC"
+        state: "{{ state }}"
+      register: poc_inventory
+      tags:
+        - bootstrap_inventories
+
+    # https://console.redhat.com/ansible/automation-hub/repo/published/ansible/controller/content/module/job_template/
+    - name: "Create job templates: Ansible Controller job templates for each tag"
+      ansible.controller.job_template:
+        name: "{{ poc_package }} - {{ item }}"
+        description: "WARNING: removing tags may produce undesirable results"
+        organization: "POC"
+        project: "POC"
+        playbook: "playbooks/{{ poc_package }}/{{ poc_package }}.yml"
+        # credential: "" # undefined as guardrail
+        ask_credential_on_launch: true # defined as guardrail
+        # inventory: "POC" # undefined as guardrail
+        ask_inventory_on_launch: true # defined as guardrail
+        limit: "REQUIRED" # defined as guardrail
+        ask_limit_on_launch: true # defined as guardrail
+        job_type: "run"
+        job_tags: "{{ item }}"
+        validate_certs: false
+      loop: "{{ job_templates_tags_list }}"
+      register: poc_package_job_templates
+      tags:
+        - bootstrap_job_templates
+
+    - name: "Create job template: Install Insights Client"
+      ansible.controller.job_template:
+        name: "{{ poc_package }} - FULL PLAYBOOK: Install Insights Client"
+        organization: "POC"
+        project: "POC"
+        playbook: "playbooks/{{ poc_package }}/install-insights-client.yml"
+        # credential: "" # undefined as guardrail
+        ask_credential_on_launch: true # defined as guardrail
+        # inventory: "" # undefined as guardrail
+        ask_inventory_on_launch: true # defined as guardrail
+        limit: "REQUIRED" # defined as guardrail
+        ask_limit_on_launch: true # defined as guardrail
+        job_type: "run"
+        validate_certs: false
+      when: poc_package == "rhel_patching"
+      register: poc_package_rhel_patching_install_insights_client
+      tags:
+        - bootstrap_job_templates
+
+    - name: "Create job template: Install Yum Security Updates"
+      ansible.controller.job_template:
+        name: "{{ poc_package }} - FULL PLAYBOOK: Install Yum Security Updates"
+        organization: "POC"
+        project: "POC"
+        playbook: "playbooks/{{ poc_package }}/install-yum-security-updates.yml"
+        # credential: "" # undefined as guardrail
+        ask_credential_on_launch: true # defined as guardrail
+        # inventory: "" # undefined as guardrail
+        ask_inventory_on_launch: true # defined as guardrail
+        limit: "REQUIRED" # defined as guardrail
+        ask_limit_on_launch: true # defined as guardrail
+        job_type: "run"
+        validate_certs: false
+      when: poc_package == "rhel_patching"
+      register: poc_package_rhel_patching_install_yum_security_updates
+      tags:
+        - bootstrap_job_templates
+
+    - name: "Create job template: Linux Discovery"
+      ansible.controller.job_template:
+        name: "{{ poc_package }} - FULL PLAYBOOK: Linux Discovery"
+        organization: "POC"
+        project: "POC"
+        playbook: "playbooks/{{ poc_package }}/linux-discovery.yml"
+        # credential: "" # undefined as guardrail
+        ask_credential_on_launch: true # defined as guardrail
+        # inventory: "" # undefined as guardrail
+        ask_inventory_on_launch: true # defined as guardrail
+        limit: "REQUIRED" # defined as guardrail
+        ask_limit_on_launch: true # defined as guardrail
+        job_type: "run"
+        validate_certs: false
+      when: poc_package == "rhel_patching"
+      register: poc_package_rhel_patching_linux_discovery
+      tags:
+        - bootstrap_job_templates

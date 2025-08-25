@@ -1,0 +1,82 @@
+---
+# tasks file for network_automation
+
+- name: "Ensure Switch Connectivity"
+  ansible.builtin.ping:
+  register: ping_result
+  tags:
+    - never
+    - ping_ios_switch
+
+- name: "Display Ping Result"
+  ansible.builtin.debug:
+    var: ping_result
+  tags:
+    - never
+    - ping_ios_switch
+
+- name: "Run 'Show Version' Command on IOS Switch"
+  cisco.ios.ios_command:
+    commands: show version
+  register: show_version_output
+  tags:
+    - never
+    - show_ios_switch_version
+
+- name: "Display 'Show Version' Command Output"
+  ansible.builtin.debug:
+    msg: "{{ show_version_output.stdout_lines }}"
+  tags:
+    - never
+    - show_ios_switch_version
+
+- name: "Check ip ssh version"
+  cisco.ios.ios_command:
+    commands: "show running-config | include ip ssh version"
+  register: ssh_version_output
+  tags:
+    - never
+    - show_ios_switch_ssh_version
+
+- name: "Display ip ssh version configuration"
+  ansible.builtin.debug:
+    msg: "{{ ssh_version_output.stdout_lines }}"
+  tags:
+    - never
+    - show_ios_switch_ssh_version
+
+- name: Check SSH version and print message
+  ansible.builtin.debug:
+    msg: "{{ \"I'm OK\" if 'ip ssh version 2' in ssh_version_output.stdout_lines[0] else 'Fix it!' }}: {{ ssh_version_output.stdout_lines[0] }}"
+  tags:
+    - never
+    - show_ios_switch_ssh_version
+
+- name: "Add ip ssh version 2 if not configured"
+  cisco.ios.ios_config:
+    lines:
+      - "ip ssh version 2"
+    save_when: modified
+  when: "'ip ssh version 2' not in ssh_version_output.stdout"
+  tags:
+    - never
+    - show_ios_switch_ssh_version
+
+- name: Configure the login banner
+  cisco.ios.ios_banner:
+    banner: login
+    text: |
+      this is my login banner
+      that contains a multiline
+      string
+    state: present
+  tags:
+    - never
+    - configure_ios_switch_login_banner
+
+- name: Save running to startup when modified
+  cisco.ios.ios_config:
+    save_when: modified
+  tags:
+    - never
+    - ios_switch_copy_run_start

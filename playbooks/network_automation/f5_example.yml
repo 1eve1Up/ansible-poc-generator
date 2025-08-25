@@ -1,0 +1,92 @@
+---
+- name: F5 BIG-IP - Common Tasks
+  hosts: f5
+  gather_facts: no
+  collections:
+    - f5networks.f5_modules
+
+  vars:
+    ansible_connection: ansible.netcommon.httpapi
+    ansible_httpapi_use_ssl: yes
+    ansible_httpapi_validate_certs: no
+    ansible_user: your_username
+    ansible_password: your_password
+
+  tasks:
+    - name: Configure virtual servers
+      f5networks.f5_modules.bigip_virtual_server:
+        name: "{{ item.name }}"
+        description: "{{ item.description }}"
+        destination: "{{ item.destination }}"
+        port: "{{ item.port }}"
+        profiles: "{{ item.profiles }}"
+        pool: "{{ item.pool }}"
+        snat: "{{ item.snat }}"
+        provider:
+          server: "{{ inventory_hostname }}"
+          user: "{{ ansible_user }}"
+          password: "{{ ansible_password }}"
+          validate_certs: "{{ ansible_httpapi_validate_certs }}"
+        state: present
+      loop: "{{ virtual_servers }}"
+      tags: configure_virtual_servers
+
+    - name: Configure pools
+      f5networks.f5_modules.bigip_pool:
+        name: "{{ item.name }}"
+        lb_method: "{{ item.lb_method }}"
+        monitors: "{{ item.monitors }}"
+        members: "{{ item.members }}"
+        provider:
+          server: "{{ inventory_hostname }}"
+          user: "{{ ansible_user }}"
+          password: "{{ ansible_password }}"
+          validate_certs: "{{ ansible_httpapi_validate_certs }}"
+        state: present
+      loop: "{{ pools }}"
+      tags: configure_pools
+
+    - name: Configure SSL profiles
+      f5networks.f5_modules.bigip_profile_client_ssl:
+        name: "{{ item.name }}"
+        cert: "{{ item.cert }}"
+        key: "{{ item.key }}"
+        chain: "{{ item.chain }}"
+        provider:
+          server: "{{ inventory_hostname }}"
+          user: "{{ ansible_user }}"
+          password: "{{ ansible_password }}"
+          validate_certs: "{{ ansible_httpapi_validate_certs }}"
+        state: present
+      loop: "{{ ssl_profiles }}"
+      tags: configure_ssl_profiles
+
+    - name: Configure iRules
+      f5networks.f5_modules.bigip_irule:
+        name: "{{ item.name }}"
+        content: "{{ item.content }}"
+        provider:
+          server: "{{ inventory_hostname }}"
+          user: "{{ ansible_user }}"
+          password: "{{ ansible_password }}"
+          validate_certs: "{{ ansible_httpapi_validate_certs }}"
+        state: present
+      loop: "{{ irules }}"
+      tags: configure_irules
+
+    - name: Configure monitors
+      f5networks.f5_modules.bigip_monitor_http:
+        name: "{{ item.name }}"
+        parent: "{{ item.parent }}"
+        send: "{{ item.send }}"
+        receive: "{{ item.receive }}"
+        interval: "{{ item.interval }}"
+        timeout: "{{ item.timeout }}"
+        provider:
+          server: "{{ inventory_hostname }}"
+          user: "{{ ansible_user }}"
+          password: "{{ ansible_password }}"
+          validate_certs: "{{ ansible_httpapi_validate_certs }}"
+        state: present
+      loop: "{{ monitors }}"
+      tags: configure_monitors

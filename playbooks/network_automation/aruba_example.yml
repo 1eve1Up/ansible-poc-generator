@@ -1,0 +1,63 @@
+---
+- name: Aruba Networks - Common Tasks
+  hosts: aruba
+  gather_facts: no
+  collections:
+    - arubanetworks.aos_switch
+
+  vars:
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_user: your_username
+    ansible_password: your_password
+    ansible_become: yes
+    ansible_become_method: enable
+    ansible_become_password: your_enable_password
+    ansible_command_timeout: 60
+
+  tasks:
+    - name: Configure VLANs
+      arubanetworks.aos_switch.arubaoss_vlan:
+        state: present
+        vlan_id: "{{ item.vlan_id }}"
+        name: "{{ item.name }}"
+      loop: "{{ vlans }}"
+      tags: configure_vlans
+
+    - name: Configure interfaces
+      arubanetworks.aos_switch.arubaoss_interface:
+        state: present
+        interface: "{{ item.interface }}"
+        description: "{{ item.description }}"
+        admin_state: "{{ item.admin_state }}"
+        tagged_vlan: "{{ item.tagged_vlan }}"
+        untagged_vlan: "{{ item.untagged_vlan }}"
+      loop: "{{ interfaces }}"
+      tags: configure_interfaces
+
+    - name: Configure LACP trunks
+      arubanetworks.aos_switch.arubaoss_trunk:
+        state: present
+        trunk_id: "{{ item.trunk_id }}"
+        trunk_name: "{{ item.trunk_name }}"
+        interfaces: "{{ item.interfaces }}"
+        lacp_mode: "{{ item.lacp_mode }}"
+      loop: "{{ trunks }}"
+      tags: configure_lacp_trunks
+
+    - name: Configure Spanning Tree Protocol (STP)
+      arubanetworks.aos_switch.arubaoss_stp:
+        state: present
+        stp_mode: "{{ stp_mode }}"
+        stp_priority: "{{ stp_priority }}"
+        bpdu_filter: "{{ bpdu_filter }}"
+        bpdu_protection: "{{ bpdu_protection }}"
+      tags: configure_stp
+
+    - name: Configure Access Control Lists (ACLs)
+      arubanetworks.aos_switch.arubaoss_acl:
+        state: present
+        acl_name: "{{ item.acl_name }}"
+        acl_type: "{{ item.acl_type }}"
+        acl_rules: "{{ item.acl_rules }}"
+      loop: "{{ acls }}"
+      tags: configure_acls

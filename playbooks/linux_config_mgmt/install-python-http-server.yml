@@ -1,0 +1,69 @@
+---
+- name: Install a Simple Python HTTP server on RHEL
+  hosts: all
+  become: true
+  gather_facts: false
+  collections:
+    - ansible.posix
+    - community.general
+  vars:
+    myfile: "hello.zip"
+    myport: 8080
+    myproto: "tcp"
+  tasks:
+    - name: Install Python and necessary packages
+      ansible.builtin.yum:
+        name:
+          - python3
+          - policycoreutils-python-utils
+        state: present
+
+    - name: Ensure /var/www/html directory exists
+      ansible.builtin.file:
+        path: /var/www/html
+        state: directory
+        mode: '0755'
+
+    - name: Upload file to the server
+      ansible.builtin.copy:
+        src: "files/{{ myfile }}"
+        dest: "/var/www/html/{{ myfile }}"
+        mode: '0644'
+
+    - name: Configure SELinux to allow Python HTTP server
+      community.general.seport:
+        ports: "{{ myport }}"
+        proto: "{{ myproto }}"
+        setype: http_port_t
+        state: present
+
+    - name: Configure Firewall to allow access to the HTTP server
+      ansible.posix.firewalld:
+        port: "{{ myport }}/{{ myproto }}"
+        permanent: true
+        immediate: true
+        state: enabled
+
+    - name: Create a systemd service file for Python HTTP server
+      ansible.builtin.template:
+        src: templates/python-http-server.service.j2
+        dest: /etc/systemd/system/python-http-server.service
+        mode: '0644'
+
+    - name: Reload systemd configuration
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Ensure Python HTTP server service is enabled and running
+      ansible.builtin.systemd:
+        name: python-http-server
+        state: started
+        enabled: true
+
+    - name: Download a file from a website
+      ansible.builtin.get_url:
+        url: "http://{{ inventory_hostname }}:{{ myport }}/{{ myfile }}"
+        dest: "/tmp/{{ myfile }}"
+        mode: '0644'
+      tags:
+        - test_download
