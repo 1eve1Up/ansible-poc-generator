@@ -8,6 +8,8 @@
 
 The Ansible POC Generator repo is authored and maintained by Red Hat® Premier Partner [Level Up Technology LLC](https://levelupla.io).
 
+Blog announcement: https://levelupla.io/announcing-the-open-source-release-of-level-ups-ansible-poc-generator/
+
 ## Goals of This Repo
 
 1. Provide an instant repo and set of job templates for popular Ansible POC use cases. 
