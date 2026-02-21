@@ -31,24 +31,25 @@ No warranty & no support - use at your own risk.
 1. Fork this repo first! https://github.com/1eve1Up/ansible-poc-generator
 
 1. This quickstart assumes that:
-    1. You have already successfully installed Red Hat Ansible Automation Platform (AAP) 2.5. 
+    1. You have already successfully installed Red Hat Ansible Automation Platform (AAP) 2.5 or later. 
     1. You are running these CLI steps on the AAP controller itself.
 
-1. Create `YOUR_AAP_TOKEN` for admin user with "Write" scope [Red Hat AAP 2.5 doc: "Adding tokens"](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/access_management_and_authentication/gw-token-based-authentication#proc-controller-apps-create-tokens)
+1. Create `YOUR_AAP_TOKEN` for admin user with "Write" scope [Red Hat AAP 2.6 doc: "Adding tokens"](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.6/html/access_management_and_authentication/gw-token-based-authentication#proc-controller-apps-create-tokens)
 
     ---
     > **_NOTE:_** How to test your API access:
-        ```
-        export HOSTNAME=$(hostname)
-        export AAP_TOKEN=<YOUR_AAP_TOKEN>
-        curl -k -H "Authorization: Bearer $AAP_TOKEN" \
-            https://$HOSTNAME/api/controller/v2/ping/
-        ```
+    
+    ```bash
+    export HOSTNAME=$(hostname)
+    export AAP_TOKEN=<YOUR_AAP_TOKEN>
+    curl -k -H "Authorization: Bearer $AAP_TOKEN" \
+        https://$HOSTNAME/api/controller/v2/ping/
+    ```
     ---
 
 1. $ `ssh -A USERNAME@HOSTNAME`
 
-1. Copy your existing `~/.ansible.cfg` or otherwise create a hub `token` [Red Hat AAP 2.5 doc: "Token management in automation hub"](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html-single/managing_automation_content/index#token-management-hub_cloud-sync)
+1. Copy your existing `~/.ansible.cfg` or otherwise create a hub `token` [Red Hat AAP 2.6 doc: "Token management in automation hub"](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.6/html-single/managing_automation_content/index#token-management-hub_cloud-sync)
 
 1. $ `git clone git@github.com:1eve1Up/ansible-poc-generator.git (REPLACE WITH YOUR FORK)`
 
@@ -74,7 +75,7 @@ No warranty & no support - use at your own risk.
 
     ```
 
-1. $ `vi /home/daniel/.tower_cli.cfg`
+1. $ `vi /home/$USER/.tower_cli.cfg`
     ```
     [general]
     host = https://<HOSTNAME>
@@ -87,13 +88,13 @@ No warranty & no support - use at your own risk.
 
 NOTES:
 
-- Due to AAP 2.5 redesign, the `ansible.*` collections involved in this are transitioning, and there is near-duplication of variables in certain cases. 
+- Due to AAP 2.5 and later redesign, the `ansible.*` collections involved in this are transitioning, and there is near-duplication of variables in certain cases. 
 
 - This assumes you will use a `vars.yml` file or `export` environment variables
 
 - You **MUST** fork the ansible-poc-generator repo, or you will not be able to modify the Ansible playbook code.
 
-- Only run this bootstrap post AAP 2.5 install. Do not attempt to use this on prior AAP versions.
+- Only run this bootstrap post AAP 2.5 or later install. Do not attempt to use this on prior AAP versions.
 
 ## Using the Ansible POC Package
 
@@ -116,7 +117,7 @@ NOTES:
 ### Modifying Example Playbook Task Variables
 
 - You can either modify the example variables found in `roles/poc_packages/PACKAGE_NAME/vars/main.yml`...
-- ...OR you can inject values into job templates via [extra variables](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/using_automation_execution/controller-job-templates#controller-extra-variables) or [surveys](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/using_automation_execution/controller-job-templates#controller-surveys-in-job-templates).
+- ...OR you can inject values into job templates via [extra variables](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.6/html/using_automation_execution/controller-job-templates#controller-extra-variables) or [surveys](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.6/html/using_automation_execution/controller-job-templates#controller-surveys-in-job-templates).
 
 ### Determining Installed `pip` Packages and Ansible Collections in the Latest Default Execution Environment Image
 
