@@ -94,7 +94,7 @@ NOTES:
 
 - You **MUST** fork the ansible-poc-generator repo, or you will not be able to modify the Ansible playbook code.
 
-- Only run this bootstrap post AAP 2.5 or later install. Do not attempt to use this on prior AAP versions.
+- Only run this bootstrap on an AAP 2.5 or later install. Do not attempt to use this on prior AAP versions.
 
 ## Using the Ansible POC Package
 
