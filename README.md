@@ -162,6 +162,41 @@ bash-4.4#
 
 ```
 
+## Disclaimer
+
+This repo is provided as-is, without warranties or guarantees of any kind.
+
+The Ansible POC Generator creates and runs automation against Ansible Automation Platform and managed hosts. Its playbooks may:
+
+- Create or modify AAP resources such as projects, inventories, credentials, and job templates
+- Install, update, configure, or remove software
+- Change operating system, service, network, and security settings
+- Patch or reboot managed hosts
+- Execute commands with elevated privileges
+
+You are responsible for:
+
+- Reviewing all playbooks, roles, variables, inventories, credentials, and job templates
+- Validating automation behavior and limiting its scope to intended hosts
+- Securing AAP, managed hosts, networks, credentials, tokens, and other secrets
+- Testing automation in a non-production environment before production use
+- Complying with your organization's operational, security, and change-management requirements
+
+The Ansible POC Generator is a proof-of-concept tool, not a managed platform, support service, or safety system.
+
+No guarantee is made regarding:
+
+- Uptime
+- Security
+- Correctness
+- Fitness for a particular purpose
+- Compatibility across AAP, Ansible collections, execution environments, or operating system versions
+- Prevention of configuration drift, data loss, service interruption, or host unavailability
+
+Always review job output, proposed changes, and resulting system state before relying on this automation in production environments.
+
+Use at your own risk.
+
 ## License and Copyright
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)

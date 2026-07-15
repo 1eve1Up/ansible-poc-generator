@@ -28,12 +28,22 @@ Ensure TCP port `5986` is allowed between the AAP execution environment and the 
 
 ## 2. Configure WinRM on the Windows Host
 
-Ansible provides a PowerShell helper script to configure Windows Remote Management for Ansible connectivity.
+Ansible provides a PowerShell helper script to configure Windows Remote Management for Ansible connectivity. This repository includes a [local copy of the script](../ConfigureRemotingForAnsible.ps1) downloaded from the Ansible `stable-2.9` branch.
+
+As of **July 15, 2026**, the upstream script at
+<https://github.com/ansible/ansible/raw/stable-2.9/examples/scripts/ConfigureRemotingForAnsible.ps1>
+had the following SHA-1 hash:
+
+```text
+8f736ba99cd545abeb4bc90ea94536306ad0a394
+```
+
+> Before using this repository's copy, compare it with the current upstream script. If the upstream SHA-1 no longer matches the value above, **do not use this repository's copy**.
 
 Open **PowerShell as Administrator** on the Windows host and run:
 
 ```powershell
-$scriptUrl = "https://github.com/ansible/ansible/raw/stable-2.9/examples/scripts/ConfigureRemotingForAnsible.ps1"
+$scriptUrl = "https://raw.githubusercontent.com/1eve1Up/ansible-poc-generator/main/ConfigureRemotingForAnsible.ps1"
 $scriptPath = "$env:TEMP\ConfigureRemotingForAnsible.ps1"
 
 Invoke-WebRequest -Uri $scriptUrl -OutFile $scriptPath
@@ -138,15 +148,19 @@ If the hosts return `pong`, AAP can connect to the Windows hosts over WinRM.
 
 ## Execution Environment
 
-The AAP Execution Environment used for Windows automation must include the Python dependency required by the WinRM connection plugin.
+Ansible Automation Platform 2.7 ships with the following Default Execution Environment:
 
-For `ansible_connection: winrm`, ensure the Execution Environment includes:
+```text
+registry.redhat.io/ansible-automation-platform-27/ee-supported-rhel9:latest
+```
+
+This image includes both the `ansible.windows` collection and the Python dependency required by the WinRM connection plugin:
 
 ```text
 pywinrm
 ```
 
-If WinRM connection errors occur across all Windows hosts, verify the contents of the Execution Environment before troubleshooting individual servers.
+When using a different Execution Environment, ensure that it includes both `ansible.windows` and `pywinrm`. If WinRM connection errors occur across all Windows hosts, verify the contents of the selected Execution Environment before troubleshooting individual servers.
 
 ## Troubleshooting
 
@@ -232,4 +246,5 @@ If all hosts fail with similar WinRM connection or Python dependency errors, ver
 
 Ansible WinRM configuration script:
 
-https://github.com/ansible/ansible/blob/stable-2.9/examples/scripts/ConfigureRemotingForAnsible.ps1
+* [Repository copy](../ConfigureRemotingForAnsible.ps1)
+* [Upstream `stable-2.9` source](https://github.com/ansible/ansible/blob/stable-2.9/examples/scripts/ConfigureRemotingForAnsible.ps1)
