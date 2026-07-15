@@ -38,6 +38,22 @@ had the following Git blob SHA-1:
 7e039bb415d7aeb8cc8ad6773fbfb1c13d756800
 ```
 
+From the repository root, calculate the current upstream Git blob SHA-1 without saving or transforming the file:
+
+```bash
+curl -fsSL \
+  https://github.com/ansible/ansible/raw/stable-2.9/examples/scripts/ConfigureRemotingForAnsible.ps1 \
+  | git hash-object --stdin
+```
+
+Calculate the Git blob SHA-1 of the repository copy:
+
+```bash
+git hash-object ConfigureRemotingForAnsible.ps1
+```
+
+Both commands should return the value shown above.
+
 > Before using this repository's copy, compare it with the current upstream script. If the upstream Git blob SHA-1 no longer matches the value above, **do not use this repository's copy**.
 
 Open **PowerShell as Administrator** on the Windows host and run:
