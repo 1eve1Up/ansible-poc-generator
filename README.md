@@ -21,8 +21,14 @@ Blog announcement: https://levelupla.io/announcing-the-open-source-release-of-le
 1. linux_config_mgmt
 1. network_automation
 1. rhel_patching
-1. windows_automation
-1. windows_patching
+1. [windows_automation](docs/windows-automation-setup.md)
+1. [windows_patching](docs/windows-automation-setup.md)
+
+## Documentation
+
+See the [documentation index](docs/README.md) for setup and usage guides.
+
+Windows POC packages require additional host, inventory, credential, and Execution Environment configuration. Follow the [Windows Automation Setup](docs/windows-automation-setup.md) guide before running Windows automation.
 
 ## Quickstart: Running the Bootstrap
 
@@ -98,6 +104,8 @@ NOTES:
 
 ## Using the Ansible POC Package
 
+> **Windows packages:** Complete the [Windows Automation Setup](docs/windows-automation-setup.md) before running Windows job templates. Windows connectivity should be tested against the `win` inventory group with `ansible.windows.win_ping`; the controller `ping` test below is a separate bootstrap check.
+
 1. Go to https://$HOSTNAME
 1. Review the following:
     - Templates
@@ -120,6 +128,8 @@ NOTES:
 - ...OR you can inject values into job templates via [extra variables](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.6/html/using_automation_execution/controller-job-templates#controller-extra-variables) or [surveys](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.6/html/using_automation_execution/controller-job-templates#controller-surveys-in-job-templates).
 
 ### Determining Installed `pip` Packages and Ansible Collections in the Latest Default Execution Environment Image
+
+For Windows automation, verify that the selected Execution Environment includes `pywinrm` as described in [Windows Automation Setup](docs/windows-automation-setup.md#execution-environment).
 
 ```
 [user@host ]$ podman pull registry.redhat.io/ansible-automation-platform-25/ee-supported-rhel8:latest
