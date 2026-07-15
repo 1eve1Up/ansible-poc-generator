@@ -32,13 +32,13 @@ Ansible provides a PowerShell helper script to configure Windows Remote Manageme
 
 As of **July 15, 2026**, the upstream script at
 <https://github.com/ansible/ansible/raw/stable-2.9/examples/scripts/ConfigureRemotingForAnsible.ps1>
-had the following SHA-1 hash:
+had the following Git blob SHA-1:
 
 ```text
-8f736ba99cd545abeb4bc90ea94536306ad0a394
+7e039bb415d7aeb8cc8ad6773fbfb1c13d756800
 ```
 
-> Before using this repository's copy, compare it with the current upstream script. If the upstream SHA-1 no longer matches the value above, **do not use this repository's copy**.
+> Before using this repository's copy, compare it with the current upstream script. If the upstream Git blob SHA-1 no longer matches the value above, **do not use this repository's copy**.
 
 Open **PowerShell as Administrator** on the Windows host and run:
 
